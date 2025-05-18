@@ -1,4 +1,3 @@
-
 from autotest import ForumLogin
 from autotest import ForumPostAdd
 from common.Utils import ForumDriver
@@ -21,6 +20,7 @@ if __name__=='__main__':
     ForumPostEdit.ForumPostEdit().EditSuccTest()
     #帖子发布页测试，每一个板块区都发一个帖子测试
     ForumPostAdd.ForumPostAdd().AddSuccTest()
+    ForumPostAdd.ForumPostAdd().AddFailTest()
     #站内私信测试
     ForumSendMessage.ForumSendMessage().PostMessageTest()
     #退出浏览器

@@ -1,10 +1,7 @@
-import time
-from operator import truediv
-
+from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
-
 from common.Utils import  ForumDriver
 
 class FormLogin:
@@ -64,7 +61,7 @@ class FormLogin:
         # 截图
         ForumDriver.SavePicture()
 
-    #用于作显式等待的参数
+    #用于作显式等待的参数，在规定的等待时间内反复点击显示密码按钮，一旦显示成功即停止等待
     def __wait_password_display(self,driver):
         driver.find_element(By.CSS_SELECTOR,"#signInForm > div.mb-2 > div > span").click()
         if driver.find_element(By.CSS_SELECTOR,"#password").get_attribute("type")=="text":
@@ -102,11 +99,13 @@ class FormLogin:
         )
         elem_submit.click()
 
+    #退出账号
     def ExitAccount(self):
         #点击头像
         elem_img=WebDriverWait(self.driver,10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "body > div.page > header.navbar.navbar-expand-md.navbar-light.d-print-none > div > div > div.nav-item.dropdown > a"))
         )
+        ActionChains(self.driver).move_to_element(elem_img).perform()
         elem_img.click()
         #点击退出
         elem_exit=WebDriverWait(self.driver,10).until(

@@ -1,5 +1,4 @@
 import datetime
-
 from selenium.webdriver import ActionChains
 from  selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -63,7 +62,6 @@ class ForumPostEdit:
         self.driver.find_element(By.CSS_SELECTOR, "#edit_article_submit")
         # 截图
         ForumDriver.SavePicture()
-
     # 检查原标题是否正确
     def __check_oldTitle(self):
         WebDriverWait(self.driver, 10).until(
@@ -79,7 +77,6 @@ class ForumPostEdit:
         java_script = "var elem=document.getElementById('edit_article_content');  return elem.value;"
         elem_input_content = self.driver.execute_script(java_script)
         assert elem_input_content == self.getPostContent()
-
 
     #编辑功能测试
     def __edit_function_test(self):
@@ -101,7 +98,6 @@ class ForumPostEdit:
         #成功修改后更新当前标题和内容
         self.setPostTitle(testtitle)
         self.setPostContent(testcontent)
-
     #输入标题
     def __inputTitle(self):
         testtitle = datetime.datetime.now().strftime("modify_Title:%Y%m%d-%H%M%S")
@@ -110,14 +106,13 @@ class ForumPostEdit:
         elem_input_title.clear()
         elem_input_title.send_keys(f"{testtitle}")
         return testtitle
-
     #输入内容
     def __inputContent(self):
         testcontent = datetime.datetime.now().strftime("modify_Content:%Y%m%d-%H%M%S")
         java_script = f"var elem=document.getElementById('edit_article_content'); elem.value='{testcontent}'; "
         self.driver.execute_script(java_script)
         return testcontent
-    #修改成功的弹窗测试
+    #编辑成功的弹窗测试
     def __modifyAlertTest(self):
         #等待包含“修改成功”的弹窗弹出
         elem_alert = WebDriverWait(self.driver, 10).until(
@@ -125,9 +120,7 @@ class ForumPostEdit:
         )
         alert_text = elem_alert.text
         assert alert_text.split("\n")[2] == "修改成功", f"实际:{alert_text}"
-
-
-    #检验是否成功修改
+    #检验是否成功编辑发布
     def __check_modify_success(self,testtitle,testcontent):
         # 首先保证现在页面处于 首页
         WebDriverWait(self.driver, 10).until(
@@ -147,8 +140,6 @@ class ForumPostEdit:
         assert elem_new_content.text==testcontent,f"预期结果:{testcontent},实际结果:{elem_new_content.text}"
         #返回首页
         self.driver.find_element(By.CSS_SELECTOR,"#nav_board_index > a").click()
-
-
 
     #得到首页可以编辑的第一个帖子元素的选择器selector
     def __getEditElementSelector(self):
@@ -179,8 +170,6 @@ class ForumPostEdit:
                 return selector_of_post
         return None
 
-
-
     #返回到首页
     def __ReturnHomePage(self):
         # 进入首页
@@ -195,7 +184,7 @@ class ForumPostEdit:
         )
 
 
-
+    #get和set函数
     def getPostTitle(self):
         return self.post_title
     def getPostContent(self):

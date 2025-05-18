@@ -1,20 +1,14 @@
-import time
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from common.Utils import ForumDriver
 from autotest import ForumLogin
-
-
 #尝试登陆，用"lyn333","lyn345678"登陆，验证昵称是不是lyn333
 def Trylogin():
     elemlogin=ForumLogin.FormLogin()
     elemlogin.InputNamePass("lyn333", "lyn345678")
     elemlogin.ClickLogin()
     elemlogin.CheckNickName("lyn333")
-
-
 class ForumLogon:
     url=""
     driver=""
@@ -22,7 +16,7 @@ class ForumLogon:
         self.url="http://127.0.0.1:58080/sign-up.html"
         self.driver=ForumDriver.driver
         self.driver.get(self.url)
-
+    #正常注册
     def LogonSuccess(self):
         #页面元素检查
         self.__check_element_exist()
@@ -32,6 +26,7 @@ class ForumLogon:
         self.__AllRightTest()
         # 返回原先页面，复原
         self.driver.back()
+    #异常注册
     def LogonFail(self):
         # 页面元素检查
         self.__check_element_exist()
@@ -45,7 +40,6 @@ class ForumLogon:
         self.__WrongTest_5()
         self.__WrongTest_6()
         self.__WrongTest_7()
-        self.__WrongTest_8()
 
     #页面元素检查
     def __check_element_exist(self):
@@ -97,7 +91,6 @@ class ForumLogon:
         # 截图
         ForumDriver.SavePicture()
 
-
     #输入注册的各项信息,返回注册的昵称
     def __InputLogon(self,username,nickname,password,passrepeat,agreebutt):
         # 首先清除输入框
@@ -128,6 +121,19 @@ class ForumLogon:
         self.__DisplayRepeatPass()
         return nickname
 
+    # 所有信息都正确，注册后去尝试登陆
+    def __AllRightTest(self):
+        self.__InputLogon("lyn333", "lyn333", "lyn345678", "lyn345678", 1)
+        self.__Submit()
+        # 尝试登陆
+        Trylogin()
+        self.driver.back()  # 尝试登陆后返回登陆页面
+        # 到此，是正确的用户，测试完要进行还原，返回注册页面
+        self.driver.back()
+        # 截图
+        ForumDriver.SavePicture()
+
+    #输入用户名、昵称、密码、确认密码，勾选同意条款，确认密码和密码不同
     def __WrongTest_1(self):
         self.__InputLogon("lyn444", "lyn444", "lyn45678", "lyn56789", 1)
         self.__Submit()
@@ -137,7 +143,7 @@ class ForumLogon:
         assert elem.text == "请检查确认密码"
         # 截图
         ForumDriver.SavePicture()
-
+    #输入用户名，不输入昵称、密码、确认密码，不勾选同意条款
     def __WrongTest_2(self):
         self.__InputLogon("lyn444", "", "", "", 0)
         self.__Submit()
@@ -155,7 +161,7 @@ class ForumLogon:
         assert elem_3.text == "密码不能为空",f"实际: {elem_3.text}"
         # 截图
         ForumDriver.SavePicture()
-
+    # 输入昵称、确认密码，不输入用户名、密码，不勾选同意条款
     def __WrongTest_3(self):
         self.__InputLogon("", "lyn444", "", "lyn45678", 0)
         self.__Submit()
@@ -173,7 +179,7 @@ class ForumLogon:
         assert elem_3.text == "密码不能为空", f"实际: {elem_3.text}"
         # 截图
         ForumDriver.SavePicture()
-
+    #输入密码，不输入用户名、昵称、确认密码，勾选同意条款
     def __WrongTest_4(self):
         self.__InputLogon("", "", "lyn45678", "", 1)
         self.__Submit()
@@ -191,26 +197,8 @@ class ForumLogon:
         assert elem_3.text == "昵称不能为空", f"实际: {elem_3.text}"
         # 截图
         ForumDriver.SavePicture()
-
+    #输入用户名、昵称、密码，不输入确认密码，不勾选同意条款
     def __WrongTest_5(self):
-        self.__InputLogon("", "", "lyn45678", "", 1)
-        self.__Submit()
-        elem_1 = WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located((By.CSS_SELECTOR, "#signUpForm > div > div:nth-child(5) > div > div"))
-        )
-        assert elem_1.text == "请检查确认密码", f"实际: {elem_1.text}"
-        elem_2 = WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located((By.CSS_SELECTOR, "#signUpForm > div > div:nth-child(2) > div"))
-        )
-        assert elem_2.text == "用户名不能为空", f"实际: {elem_2.text}"
-        elem_3 = WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located((By.CSS_SELECTOR, "#signUpForm > div > div:nth-child(3) > div"))
-        )
-        assert elem_3.text == "昵称不能为空", f"实际: {elem_3.text}"
-        # 截图
-        ForumDriver.SavePicture()
-
-    def __WrongTest_6(self):
         self.__InputLogon("lyn444", "lyn444", "lyn45678", "", 0)
         self.__Submit()
         elem_1 = WebDriverWait(self.driver, 10).until(
@@ -219,8 +207,8 @@ class ForumLogon:
         assert elem_1.text == "请检查确认密码", f"实际: {elem_1.text}"
         # 截图
         ForumDriver.SavePicture()
-
-    def __WrongTest_7(self):
+    #输入确认密码，不输入用户名、昵称、密码，勾选同意条款
+    def __WrongTest_6(self):
         self.__InputLogon("", "", "", "lyn45678", 1)
         self.__Submit()
         elem_1 = WebDriverWait(self.driver, 10).until(
@@ -241,8 +229,8 @@ class ForumLogon:
         assert elem_4.text == "密码不能为空", f"实际: {elem_4.text}"
         # 截图
         ForumDriver.SavePicture()
-
-    def __WrongTest_8(self):
+    #输入已注册过的用户名
+    def __WrongTest_7(self):
         self.__InputLogon("lyn", "lyn444", "lyn45678", "lyn45678", 1)
         self.__Submit()
         elemalert=WebDriverWait(self.driver, 10).until(
@@ -253,6 +241,7 @@ class ForumLogon:
         #截图
         ForumDriver.SavePicture()
 
+    #点击显示密码按钮使密码显示出来，方便截图查看
     def __DisplayPassword(self):
         elembox = self.driver.find_element(By.CSS_SELECTOR, "#password")
         WebDriverWait(self.driver, 10).until(
@@ -263,7 +252,7 @@ class ForumLogon:
             WebDriverWait(self.driver, 20).until(
                 self.__wait_password_display
             )
-
+    ##点击显示确认密码按钮使确认密码显示出来，方便截图查看
     def __DisplayRepeatPass(self):
         elembox = self.driver.find_element(By.CSS_SELECTOR, "#passwordRepeat")
         WebDriverWait(self.driver, 10).until(
@@ -275,37 +264,28 @@ class ForumLogon:
                 self.__wait_repeatpass_display
             )
 
+    #用于作显式等待的参数，在规定的等待时间内反复点击显示密码按钮，一旦显示成功即停止等待
     def __wait_password_display(self,driver):
         driver.find_element(By.CSS_SELECTOR,"#signUpForm > div > div:nth-child(4) > div > span").click()
         if driver.find_element(By.CSS_SELECTOR,"#password").get_attribute("type")=="text":
             return True
         else:
             return False
-
+    #用于作显式等待的参数，在规定的等待时间内反复点击显示确认密码按钮，一旦显示成功即停止等待
     def __wait_repeatpass_display(self,driver):
         driver.find_element(By.CSS_SELECTOR, "#signUpForm > div > div:nth-child(5) > div > span").click()
         if driver.find_element(By.CSS_SELECTOR, "#passwordRepeat").get_attribute("type") == "text":
             return True
         else:
             return False
-
-
+    #点击提交注册按钮
     def __Submit(self):
         elem_submit=WebDriverWait(self.driver,10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR,"#submit"))
         )
         elem_submit.click()
 
-    def __AllRightTest(self):
-        nickname=self.__InputLogon("lyn333","lyn333","lyn345678","lyn345678",1)
-        self.__Submit()
-        #尝试登陆
-        Trylogin()
-        self.driver.back() #尝试登陆后返回登陆页面
-        # 到此，是正确的用户，测试完要进行还原，返回注册页面
-        self.driver.back()
-        # 截图
-        ForumDriver.SavePicture()
+
 
 
 

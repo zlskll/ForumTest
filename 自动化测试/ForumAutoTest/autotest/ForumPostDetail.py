@@ -1,6 +1,4 @@
 import datetime
-import time
-
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
@@ -16,6 +14,7 @@ class ForumPostDetail:
         self.driver=ForumDriver.driver
         self.driver.get(self.url)
 
+    #帖子详情页测试
     def DetailTest(self):
         #首先登陆系统，选定首页第一个帖子标题，点击进入
         elem_login=ForumLogin.FormLogin()
@@ -33,126 +32,6 @@ class ForumPostDetail:
         self.__JumpTest()
         #回复功能测试
         self.__replyTest()
-
-
-    def __replyTest(self):
-        #等待编辑区加载
-        elem_edit_area=WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located((By.CSS_SELECTOR, "#article_details_reply"))
-        )
-        # 滑动到编辑区
-        ActionChains(self.driver).move_to_element(elem_edit_area).perform()
-        #输入回复
-        now_time=datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        reply_text="reply"+now_time
-        java_script=("var sum=document.getElementById('details_article_reply_content'); "
-                     f"sum.value='{reply_text}'; ")
-        self.driver.execute_script(java_script)
-        # 滑动到回复按钮处，不然无法点击
-        elem_reply_but=self.driver.find_element(By.CSS_SELECTOR, "#details_btn_article_reply")
-        ActionChains(self.driver).move_to_element(elem_reply_but).perform()
-        #点击回复
-        elem_reply_but.click()
-        #右下角弹窗回复成功
-        elem_alert=WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located((By.XPATH, "/html/body/div[4]/div[contains(text(),'回复成功')]"))
-        )
-        reply_alert_text=elem_alert.text
-        assert reply_alert_text.split("\n")[2] == "回复成功",f"实际:{reply_alert_text.split('\n')[2]}"
-        #截图
-        ForumDriver.SavePicture()
-
-    def __JumpTest(self):
-        #作者名字跳转测试
-        self.__nameJumpTest()
-        #编辑按钮测试
-        self.__editbutTest()
-        #删除按钮测试
-        self.__deletebutTest()
-        #截图
-        ForumDriver.SavePicture()
-
-    def __nameJumpTest(self):
-        elem_authorname = WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located((By.CSS_SELECTOR, "#article_details_author_name"))
-        )
-        authorname = elem_authorname.text
-        elem_authorname.click()
-        elem_pro_nickname = WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located((By.CSS_SELECTOR, "#profile_nickname"))
-        )
-        profile_name=elem_pro_nickname.text
-        assert authorname == profile_name, f"详情页显示: {authorname},主页显示: {profile_name}"
-        #回到详情页
-        self.__ReturnDetailPage()
-    #编辑按钮功能测试
-    def __editbutTest(self):
-        elements=self.driver.find_elements(By.CSS_SELECTOR, "#bit-forum-content > div.page-body > div > div > div:nth-child(1) > div.col-9.card.card-lg > div.card-footer.bg-transparent.mt-auto.justify-content-end > div > div:nth-child(2)")
-        if not elements or not elements[0].is_displayed():
-            return None
-        else:
-            elem_edit=self.driver.find_element(By.CSS_SELECTOR,"#details_artile_edit")
-            elem_edit.click()
-            WebDriverWait(self.driver, 10).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, "#edit_article_title"))
-            )
-            #回退到首页第一个帖子详情页
-            self.__ReturnDetailPage()
-
-    #删除按钮功能测试
-    def __deletebutTest(self):
-        #先判断是否有删除按钮
-        elements = self.driver.find_elements(By.CSS_SELECTOR,
-                                             "#bit-forum-content > div.page-body > div > div > div:nth-child(1) > div.col-9.card.card-lg > div.card-footer.bg-transparent.mt-auto.justify-content-end > div > div:nth-child(3)")
-        if not elements or not elements[0].is_displayed():
-            return None
-        else:
-            elem_deletebut=WebDriverWait(self.driver, 10).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, "#bit-forum-content > div.page-body > div > div > div:nth-child(1) > div.col-9.card.card-lg > div.card-footer.bg-transparent.mt-auto.justify-content-end > div > div:nth-child(3) > div > a"))
-            )
-            elem_deletebut.click()
-            #确认删除
-            elem_right_delete=WebDriverWait(self.driver, 10).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, "#details_artile_delete"))
-            )
-            #等待其他弹窗消失了再点击删除
-            # WebDriverWait(self.driver, 10).until(
-            #     EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.jq-toast-wrap.bottom-right > div"))
-            # )
-            elem_right_delete.click()
-            #检查右下角弹窗
-            elem_alert=WebDriverWait(self.driver, 10).until(
-                EC.visibility_of_element_located((By.XPATH, "/html/body/div[4]/div[contains(text(),'删除成功')]"))
-            )
-            assert elem_alert.text.split("\n")[2] == "删除成功",f"实际: {elem_alert.text.split('\n')[2]}"
-    #返回到主页第一个帖子的详情页
-    def __ReturnDetailPage(self):
-        #进入首页
-        self.driver.find_element(By.CSS_SELECTOR, "#nav_board_index > a").click()
-        #进入首页第一个帖子的详情页
-        elem_title = WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located(
-                (By.CSS_SELECTOR, "#artical-items-body > div:nth-child(1) > div > div.col > div.text-truncate > a"))
-        )
-        elem_title.click()
-    #点赞功能测试
-    def __LikePostTest(self):
-        #保存点赞前的点赞数
-        clickbefor_amount=self.driver.find_element(By.CSS_SELECTOR, "#details_article_likeCount").text
-        clickbefor_amount=int(clickbefor_amount)
-        #点赞
-        self.driver.find_element(By.CSS_SELECTOR, "#details_btn_like_count").click()
-        #右下角弹窗
-        elem_alert=WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located((By.CSS_SELECTOR, "body > div.jq-toast-wrap.bottom-right > div"))
-        )
-        assert elem_alert.text.split("\n")[2]=="点赞成功"
-        #记录点赞后的点赞数
-        clickafter_amount = self.driver.find_element(By.CSS_SELECTOR, "#details_article_likeCount").text
-        clickafter_amount = int(clickafter_amount)
-        assert clickafter_amount == (clickbefor_amount+1)
-        #截图
-        ForumDriver.SavePicture()
 
     #页面元素检查
     def __check_element_exist(self):
@@ -195,6 +74,133 @@ class ForumPostDetail:
         # 截图
         ForumDriver.SavePicture()
 
+    # 点赞功能测试
+    def __LikePostTest(self):
+        # 保存点赞前的点赞数
+        clickbefor_amount = self.driver.find_element(By.CSS_SELECTOR, "#details_article_likeCount").text
+        clickbefor_amount = int(clickbefor_amount)
+        # 点赞
+        self.driver.find_element(By.CSS_SELECTOR, "#details_btn_like_count").click()
+        # 右下角弹窗
+        elem_alert = WebDriverWait(self.driver, 10).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, "body > div.jq-toast-wrap.bottom-right > div"))
+        )
+        assert elem_alert.text.split("\n")[2] == "点赞成功"
+        # 记录点赞后的点赞数
+        clickafter_amount = self.driver.find_element(By.CSS_SELECTOR, "#details_article_likeCount").text
+        clickafter_amount = int(clickafter_amount)
+        assert clickafter_amount == (clickbefor_amount + 1)
+        # 截图
+        ForumDriver.SavePicture()
+
+    #帖子详情页的回复功能测试
+    def __replyTest(self):
+        #进入首页第一个帖子详情页
+        elem_entrance=WebDriverWait(self.driver, 10).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR,"#artical-items-body > div:nth-child(1) > div > div.col > div.text-truncate > a"))
+        )
+        elem_entrance.click()
+        #等待编辑区加载
+        elem_edit_area=WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "#article_details_reply"))
+        )
+        # 滑动到编辑区
+        ActionChains(self.driver).move_to_element(elem_edit_area).perform()
+        #输入回复
+        now_time=datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        reply_text="reply"+now_time
+        java_script=("var sum=document.getElementById('details_article_reply_content'); "
+                     f"sum.value='{reply_text}'; ")
+        self.driver.execute_script(java_script)
+        # 滑动到回复按钮处，不然无法点击
+        elem_reply_but=self.driver.find_element(By.CSS_SELECTOR, "#details_btn_article_reply")
+        ActionChains(self.driver).move_to_element(elem_reply_but).perform()
+        #点击回复
+        elem_reply_but.click()
+        #右下角弹窗回复成功
+        elem_alert=WebDriverWait(self.driver, 10).until(
+            EC.visibility_of_element_located((By.XPATH, "/html/body/div[4]/div[contains(text(),'回复成功')]"))
+        )
+        reply_alert_text=elem_alert.text
+        assert reply_alert_text.split("\n")[2] == "回复成功",f"实际:{reply_alert_text.split('\n')[2]}"
+        #截图
+        ForumDriver.SavePicture()
+
+    #跳转功能测试，包括作者名字跳转、编辑按钮跳转，删除按钮测试
+    def __JumpTest(self):
+        #作者名字跳转测试
+        self.__nameJumpTest()
+        #编辑按钮测试
+        self.__editbutTest()
+        #删除按钮测试
+        self.__deletebutTest()
+        #截图
+        ForumDriver.SavePicture()
+
+    #作者名字跳转
+    def __nameJumpTest(self):
+        elem_authorname = WebDriverWait(self.driver, 10).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, "#article_details_author_name"))
+        )
+        authorname = elem_authorname.text
+        elem_authorname.click()
+        elem_pro_nickname = WebDriverWait(self.driver, 10).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, "#profile_nickname"))
+        )
+        profile_name=elem_pro_nickname.text
+        assert authorname == profile_name, f"详情页显示: {authorname},主页显示: {profile_name}"
+        #回到详情页
+        self.__ReturnDetailPage()
+    #编辑按钮功能测试
+    def __editbutTest(self):
+        elements=self.driver.find_elements(By.CSS_SELECTOR, "#bit-forum-content > div.page-body > div > div > div:nth-child(1) > div.col-9.card.card-lg > div.card-footer.bg-transparent.mt-auto.justify-content-end > div > div:nth-child(2)")
+        if not elements or not elements[0].is_displayed():
+            return None
+        else:
+            elem_edit=self.driver.find_element(By.CSS_SELECTOR,"#details_artile_edit")
+            elem_edit.click()
+            WebDriverWait(self.driver, 10).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, "#edit_article_title"))
+            )
+            #回退到首页第一个帖子详情页
+            self.__ReturnDetailPage()
+    #删除按钮功能测试
+    def __deletebutTest(self):
+        #先判断是否有删除按钮
+        elements = self.driver.find_elements(By.CSS_SELECTOR,
+                                             "#bit-forum-content > div.page-body > div > div > div:nth-child(1) > div.col-9.card.card-lg > div.card-footer.bg-transparent.mt-auto.justify-content-end > div > div:nth-child(3)")
+        if not elements or not elements[0].is_displayed():
+            return None
+        else:
+            elem_deletebut=WebDriverWait(self.driver, 10).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, "#bit-forum-content > div.page-body > div > div > div:nth-child(1) > div.col-9.card.card-lg > div.card-footer.bg-transparent.mt-auto.justify-content-end > div > div:nth-child(3) > div > a"))
+            )
+            elem_deletebut.click()
+            #确认删除
+            elem_right_delete=WebDriverWait(self.driver, 10).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, "#details_artile_delete"))
+            )
+            #等待其他弹窗消失了再点击删除
+            # WebDriverWait(self.driver, 10).until(
+            #     EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.jq-toast-wrap.bottom-right > div"))
+            # )
+            elem_right_delete.click()
+            #检查右下角弹窗
+            elem_alert=WebDriverWait(self.driver, 10).until(
+                EC.visibility_of_element_located((By.XPATH, "/html/body/div[4]/div[contains(text(),'删除成功')]"))
+            )
+            assert elem_alert.text.split("\n")[2] == "删除成功",f"实际: {elem_alert.text.split('\n')[2]}"
+
+    #返回到主页第一个帖子的详情页
+    def __ReturnDetailPage(self):
+        #进入首页
+        self.driver.find_element(By.CSS_SELECTOR, "#nav_board_index > a").click()
+        #进入首页第一个帖子的详情页
+        elem_title = WebDriverWait(self.driver, 10).until(
+            EC.visibility_of_element_located(
+                (By.CSS_SELECTOR, "#artical-items-body > div:nth-child(1) > div > div.col > div.text-truncate > a"))
+        )
+        elem_title.click()
 
     #返回当前用户的昵称
     def __getLoginName(self):
